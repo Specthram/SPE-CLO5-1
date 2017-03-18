@@ -1,0 +1,61 @@
+---
+- name: install curl
+  package:
+    name: curl
+    state: latest
+
+- name: install docker machine
+  shell: 'curl -L "https://github.com/docker/machine/releases/download/v0.10.0/docker-machine-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-machine && 
+  chmod +x /usr/local/bin/docker-machine'
+
+
+
+- name: install docker compose
+  shell: 'curl -L "https://github.com/docker/compose/releases/download/1.11.1/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose &&
+  chmod +x /usr/local/bin/docker-compose'
+
+- name: Uninstall old versions docker et docker engine
+  apt: 
+    state=absent
+    name={{item}}
+  with_items: 
+  - docker
+#  - docker-ce
+
+- name: install docker engine
+  apt: 
+#    update_cache=yes
+    state=latest
+    name={{item}} 
+  with_items: 
+#  - --no-install-recommends
+  - apt-transport-https
+#  - ca-certificates  
+  - software-properties-common
+
+- name:  ajout clef docker engine
+#  shell: 'curl -fsSL "https://download.docker.com/linux/debian/gpg" | sudo apt-key add -'
+  shell: 'curl -fsSL "https://sks-keyservers.net/pks/lookup?op=get&search=0xee6d536cf7dc86e2d7d56f59a178ac6c6238f52e" | sudo apt-key add -'
+
+- name: add repository
+  shell: 'add-apt-repository "deb https://packages.docker.com/1.13/apt/repo/ debian-$(lsb_release -cs) main"'
+#- name:  affichage key
+#  shell: 'apt-key fingerprint 0EBFCD88'
+
+#- name:  add-apt-repository
+#  shell: 'add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/debian $(lsb_release -cs) stable"'
+
+#- name: install docker-ce
+#  apt:
+#    name: docker-ce 
+#    state: latest
+
+#- name: apt-cache madison docker-engine
+#  shell: 'apt-cache madison docker-engine'
+
+- name: apt update
+  shell: 'apt-get -y update'
+
+- name: install docker engine 1.13
+  apt:
+    name: docker-engine
