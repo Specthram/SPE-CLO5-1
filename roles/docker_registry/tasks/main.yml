@@ -1,0 +1,14 @@
+---
+- include_vars: "{{ ansible_distribution }}.yml"
+
+- name: Create service viz
+  shell: 'docker service create --name=viz --publish=5050:8080/tcp --constraint=node.role==manager --mount=type=bind,src=/var/run/docker.sock,dst=/var/run/docker.sock manomarks/visualizer'
+  when: ansible_host == '172.16.230.18'
+
+- name: Service consul master
+  shell: 'docker service create --replicas 1 --name consul-leader --publish 8501:8500 --network multi-host-net --constraint=node.hostname=="vm018" progrium/consul -server -bootstrap-expect 1 -ui-dir /ui'
+  when: ansible_host == '172.16.230.18'
+
+- name: Service consul master
+  shell: 'docker service create --name consul-nodes --publish 8500:8500 --network multi-host-net --mode global progrium/consul -server -join 172.16.230.18 -ui-dir /ui'
+  when: ansible_host == '172.16.230.18'

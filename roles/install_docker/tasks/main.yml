@@ -20,42 +20,66 @@
     name={{item}}
   with_items: 
   - docker
-#  - docker-ce
+  - docker-engine
 
-- name: install docker engine
+- name: install paquet pour docker engine
   apt: 
-#    update_cache=yes
+    update_cache=yes
     state=latest
     name={{item}} 
   with_items: 
-#  - --no-install-recommends
   - apt-transport-https
-#  - ca-certificates  
+  - ca-certificates  
+  - curl
   - software-properties-common
 
 - name:  ajout clef docker engine
-#  shell: 'curl -fsSL "https://download.docker.com/linux/debian/gpg" | sudo apt-key add -'
-  shell: 'curl -fsSL "https://sks-keyservers.net/pks/lookup?op=get&search=0xee6d536cf7dc86e2d7d56f59a178ac6c6238f52e" | sudo apt-key add -'
+  shell: 'curl -fsSL "https://download.docker.com/linux/debian/gpg" | sudo apt-key add -'
 
-- name: add repository
-  shell: 'add-apt-repository "deb https://packages.docker.com/1.13/apt/repo/ debian-$(lsb_release -cs) main"'
-#- name:  affichage key
-#  shell: 'apt-key fingerprint 0EBFCD88'
+- name: ajout du depot_1_13 docker engine
+  shell: 'sudo add-apt-repository  "deb https://packages.docker.com/1.13/apt/repo/ debian-$(lsb_release -cs)  main"'
 
-#- name:  add-apt-repository
-#  shell: 'add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/debian $(lsb_release -cs) stable"'
-
-#- name: install docker-ce
-#  apt:
-#    name: docker-ce 
-#    state: latest
-
-#- name: apt-cache madison docker-engine
-#  shell: 'apt-cache madison docker-engine'
-
-- name: apt update
+- name: update package
   shell: 'apt-get -y update'
 
-- name: install docker engine 1.13
-  apt:
-    name: docker-engine
+- name: install docker engine
+  package:
+     name: docker-engine
+     state: present
+
+#Mise en place du docker swarm
+- name: Creation d'un group de manager
+  shell: 'docker swarm init --advertise-addr={{ swarm_iface | default("eth0") }}:2377'
+  when: 
+      - "'swarm_manager_operational' not in groups"
+      - ansible_host == '172.16.230.18'
+  register: bootstrap_first_node
+
+- name: add initialized host to swarm_manager_operational group
+  add_host:
+      hostname: "{{ play_hosts[0] }}"
+      groups: swarm_manager_operational
+  when:
+      - bootstrap_first_node | changed
+      - ansible_host == '172.16.230.18' 
+
+- name: retrieve swarm worker token
+  shell: 'docker swarm join-token -q worker'
+  register: swarm_worker_token
+  when: ansible_host == '172.16.230.18'
+
+- name: populate list of manager ips
+  add_host:
+       hostname: "{{ hostvars[item]['ansible_' + iface]['ipv4']['address'] }}"
+       groups: swarm_manager_ips
+  with_items: "{{ play_hosts }}"
+  when: ansible_host == '172.16.230.18'
+
+- name: join worker nodes to cluster
+  shell: "docker swarm join --advertise-addr={{ swarm_iface | default('eth0') }}:2377 --token={{ token }} {{ groups['swarm_manager_ips'][0] }}:2377"
+  when: ansible_host == "172.16.230.51" or
+        ansible_host == "172.16.230.84"
+
+- name: docker network config
+  shell: 'docker network create -d overlay --subnet 10.1.9.0/24 multi-host-net'
+  when: ansible_host == '172.16.230.18'

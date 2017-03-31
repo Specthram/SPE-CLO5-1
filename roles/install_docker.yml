@@ -1,0 +1,14 @@
+---
+
+- hosts: group-web
+  remote_user: root
+#  tasks:
+#  - name: Ajout clef SSH
+#    authorized_key:
+#      user: root
+#      state: present
+#      key: "{{ lookup('file', '/home/ansible/.ssh/id_rsa.pub') }}"
+
+  roles:
+  - install_docker
+#  - name: 
