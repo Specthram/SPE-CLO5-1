@@ -1,26 +1,38 @@
-# Slim Framework 3 Skeleton Application
+# Slim Framework 3 Booking Micro Service
 
-Use this skeleton application to quickly setup and start working on a new Slim Framework 3 application. This application uses the latest Slim 3 with the PHP-View template renderer. It also uses the Monolog logger.
+# Route list
 
-This skeleton application was built for Composer. This makes setting up a new Slim Framework application quick and easy.
+## GET /api/v1/debug/users
 
-## Install the Application
+liste tous les utilisateurs
 
-Run this command from the directory in which you want to install your new Slim Framework application.
+## GET /api/v1/debug/booking
 
-    php composer.phar create-project slim/slim-skeleton [my-app-name]
+Liste les reservations effectuées
 
-Replace `[my-app-name]` with the desired directory name for your new application. You'll want to:
+## GET /api/v1/debug/test
 
-* Point your virtual host document root to your new application's `public/` directory.
-* Ensure `logs/` is web writeable.
+Vérifie la connection à la base de données
 
-To run the application in development, you can also run this command. 
+## GET /api/v1/booking
 
-	php composer.phar start
+Liste les routes disponibles
 
-Run this command to run the test suite
+## GET /api/v1/booking/book/{id}
 
-	php composer.phar test
+Affiche une reservation par son id
 
-That's it! Now go build something cool.
+* TOKEN : token ou username et password
+
+
+## POST /api/v1/booking/book
+
+Deposer une reservation
+
+* TOKEN : token ou username et password
+* BODY : JSON avec room (string), start_date (yyyy-mm-dd), end_date (yyyy-mm-dd), reserved (true ou false)
+
+exemple :
+`{"room": "34", "reserved": true, "start_date": "2016-01-01", "end_date":"2016-01-02"}`
+
+retourne 200 quand ok.
