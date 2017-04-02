@@ -3,16 +3,16 @@ CREATE KEYSPACE booking WITH REPLICATION = {'class': 'SimpleStrategy', 'replicat
 USE booking;
 
 CREATE TABLE booking (
-id int PRIMARY KEY,
-room varchar,
+id text PRIMARY KEY,
+room int,
 reserved boolean,
-start_date date,
-end_date date,
-user int
+start_date timestamp,
+end_date timestamp,
+user text
 );
 
 CREATE TABLE users (
-id int PRIMARY KEY,
+id text PRIMARY KEY,
 username varchar,
 password varchar,
 session_token varchar,
@@ -21,6 +21,6 @@ lastname varchar,
 address varchar
 );
 
-INSERT INTO users ("id", "username", "password", "session_token", "firstname", "lastname", "address") VALUES (1, 'admin', 'admin', 'token1', 'admin', 'admin', 'random address');
-INSERT INTO users ("id", "username", "password", "session_token", "firstname", "lastname", "address") VALUES (1, 'michel64', 'michel', 'tokenmichel', 'michel', 'dupont', 'random address');
-INSERT INTO users ("id", "username", "password", "session_token", "firstname", "lastname", "address") VALUES (1, 'yvette42', 'yvette', 'tokenyvette', 'yvette', 'martin', 'random address');
+INSERT INTO users ("id", "username", "password", "session_token", "firstname", "lastname", "address") VALUES ('uuid1', 'admin', 'admin', 'tokenadmin', 'admin', 'admin', 'random address');
+INSERT INTO users ("id", "username", "password", "session_token", "firstname", "lastname", "address") VALUES ('uuid2', 'michel64', 'michel', 'tokenmichel', 'michel', 'dupont', 'random address');
+INSERT INTO users ("id", "username", "password", "session_token", "firstname", "lastname", "address") VALUES ('uuid3', 'yvette42', 'yvette', 'tokenyvette', 'yvette', 'martin', 'random address');
