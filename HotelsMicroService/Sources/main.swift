@@ -25,27 +25,8 @@ server.serverPort = 8181
 let routes = makeUrlRoutes()
 server.addRoutes(routes)
 
+print("fin")
 
-RedisClient.getClient(withIdentifier: RedisClientIdentifier()) {
-    c in
-    do {
-        let client = try c()
-        client.ping {
-            response in
-            defer {
-                RedisClient.releaseClient(client)
-            }
-            guard case .simpleString(let s) = response else {
-                print(false, "Unexpected response \(response)")
-                return
-            }
-            print(s == "PONG", "Unexpected response \(response)")
-        }
-    } catch {
-        print(false, "Could not connect to server \(error)")
-        return
-    }
-}
 
 do {
     // Launch the HTTP server.
