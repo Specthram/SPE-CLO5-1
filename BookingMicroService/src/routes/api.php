@@ -40,8 +40,10 @@ $app->get('/api/v1/booking/init', function(\Slim\Http\Request $request, \Slim\Ht
 });
 
 //TODO voir ça
-$app->get('/{keyspace}/{table}', function ($request, $response, $args) use ($app, $db) {
-	$db->setKeyspace($args['keyspace']);
+$app->get('/booking/{table}', function ($request, $response, $args) use ($app, $db) {
+
+	$connection = new Cassandra\Connection(['127.0.0.1'], 'booking');
+
 	$params = $request->getQueryParams();
 
 	$select = FluentCQL\Query::select('*')->from($args['table']);
@@ -66,4 +68,6 @@ $app->get('/{keyspace}/{table}', function ($request, $response, $args) use ($app
 	$rows = $db->executeSync($preparedData['id'], $bind)->fetchAll();
 
 	$response->json($rows->toArray());
+
+	$connection->disconnect();
 });
