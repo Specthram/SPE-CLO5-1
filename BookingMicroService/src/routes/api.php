@@ -14,33 +14,13 @@ $app->get('/api/v1/booking', function(\Slim\Http\Request $request, \Slim\Http\Re
 
 $app->get('/api/v1/booking/book/{id}', function(\Slim\Http\Request $request, \Slim\Http\Response$response, Array $args){
 
-	$connection = new Cassandra\Connection(['127.0.0.1'], 'booking');
+	$connection     = ConnectionService::getConnectionOrExit();
+	$authService    = new AuthService();
 
-	try {
-		$connection->connect();
-	} catch (Cassandra\Exception $e) {
-		echo 'Caught exception: ',  $e->getMessage(), "\n";
-		exit;
-	}
+	$return = $authService->authAction($request, $connection);
 
-	if($request->getHeader('token')){
-		$auth = $connection->querySync("SELECT * FROM users WHERE session_token=? LIMIT 1 ALLOW FILTERING", [(string)$request->getHeader('token')[0]])->fetchAll();
-		if (!$auth){
-			$response->withStatus(403);
-			$response->write(json_encode(["error" => "invalid credentials (token)"]));
-			return $response;
-		}
-	} elseif ($request->getHeader('username') && $request->getHeader('password')){
-		$auth = $connection->querySync("SELECT * FROM users WHERE username = ? AND password = ? LIMIT 1 ALLOW FILTERING", [(string)$request->getHeader('username')[0], (string)$request->getHeader('password')[0]])->fetchAll();
-		if (!$auth){
-			$response->withStatus(403);
-			$response->write(json_encode(["error" => "invalid credentials (username / password)"]));
-			return $response;
-		}
-	} else {
-		$response->withStatus(403);
-		$response->write(json_encode(["error" => "missing credentials"]));
-		return $response;
+	if ($return){
+		return $return;
 	}
 
 	$queryResponse = $connection->querySync('SELECT * FROM booking WHERE "id" = ?', [(int)$args['id']])->fetchAll()->toArray();
@@ -55,33 +35,15 @@ $app->get('/api/v1/booking/book/{id}', function(\Slim\Http\Request $request, \Sl
 
 $app->post('/api/v1/booking/book', function(\Slim\Http\Request $request, \Slim\Http\Response$response, Array $args){
 
-	$connection = new Cassandra\Connection(['127.0.0.1'], 'booking');
+	$response       = new \Slim\Http\Response();
+	$authService    = new AuthService();
+	$connection     = ConnectionService::getConnectionOrExit();
 
-	try {
-		$connection->connect();
-	} catch (Cassandra\Exception $e) {
-		echo 'Caught exception: ',  $e->getMessage(), "\n";
-		exit;
-	}
 
-	if($request->getHeader('token')){
-		$auth = $connection->querySync("SELECT * FROM users WHERE session_token=? LIMIT 1 ALLOW FILTERING", [(string)$request->getHeader('token')[0]])->fetchAll();
-		if (!$auth){
-			$response->withStatus(403);
-			$response->write(json_encode(["error" => "invalid credentials (token)"]));
-			return $response;
-		}
-	} elseif ($request->getHeader('username') && $request->getHeader('password')){
-		$auth = $connection->querySync("SELECT * FROM users WHERE username = ? AND password = ? LIMIT 1 ALLOW FILTERING", [(string)$request->getHeader('username')[0], (string)$request->getHeader('password')[0]])->fetchAll();
-		if (!$auth){
-			$response->withStatus(403);
-			$response->write(json_encode(["error" => "invalid credentials (username / password)"]));
-			return $response;
-		}
-	} else {
-		$response->withStatus(403);
-		$response->write(json_encode(["error" => "missing credentials"]));
-		return $response;
+	$return = $authService->authAction($request, $connection);
+
+	if ($return){
+		return $return;
 	}
 
 	$jsonBody = json_decode($request->getBody(), true);
@@ -103,7 +65,7 @@ $app->post('/api/v1/booking/book', function(\Slim\Http\Request $request, \Slim\H
 			(string)uniqid(),
 			(int)$jsonBody['room'],
 			(boolean)$jsonBody['reserved'],
-			(string)$auth[0]['id'],
+			$authService->getId(),
 			$startDateC,
 			$endDateC
 		]
