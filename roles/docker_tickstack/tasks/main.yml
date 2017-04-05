@@ -1,0 +1,9 @@
+---
+
+- name: Installation de Gitlab CE
+  become: true
+  shell: 'apt-get install sudo curl git && curl https://packages.gitlab.com/install/repositories/gitlab/gitlab-ce/script.deb.sh | sudo bash && apt-get install gitlab-ce'
+  when: ansible_host == "192.168.203.133"
+  run_once: true
+
+
