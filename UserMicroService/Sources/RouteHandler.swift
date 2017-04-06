@@ -11,6 +11,8 @@ import TurnstilePerfect
 import Turnstile
 import TurnstileCrypto
 import TurnstileWeb
+import PerfectLogger
+import PerfectRequestLogger
 
 func makeUrlRoutes() -> Routes {
     
@@ -39,6 +41,7 @@ func loginHandler(request: HTTPRequest, _ response: HTTPResponse) {
     guard let username = request.param(name: "username"),
         let password = request.param(name: "password") else {
             response.appendBody(string: toStringJon(str: "Missing username or password"))
+            LogFile.debug("Missing username or password")
             return
     }
     let credentials = UsernamePassword(username: username, password: password)
@@ -59,6 +62,7 @@ func registerHandler(request: HTTPRequest, _ response: HTTPResponse) {
     guard let username = request.param(name: "username"),
         let password = request.param(name: "password") else {
             response.appendBody(string: "Missing username or password")
+            LogFile.debug("Missing username or password")
             return
     }
     let credentials = UsernamePassword(username: username, password: password)
@@ -70,6 +74,7 @@ func registerHandler(request: HTTPRequest, _ response: HTTPResponse) {
         response.appendBody(string: toStringJon(str: e.description))
     } catch {
         response.appendBody(string: "An unknown error occurred.")
+        LogFile.critical(" An unknown error occurred.")
     }
     
     response.setHeader(.contentType, value: "application/json")
@@ -80,6 +85,7 @@ func getSelfUserHandler(request: HTTPRequest, _ response: HTTPResponse) {
     guard let account = request.user.authDetails?.account as? User else {
         response.status = .unauthorized
         response.appendBody(string: "401 Unauthorized")
+        LogFile.info("\(request): 401 Unauthorized")
         response.completed()
         return
     }
@@ -91,6 +97,7 @@ func getSelfUserHandler(request: HTTPRequest, _ response: HTTPResponse) {
 func logoutHandler(request: HTTPRequest, _ response: HTTPResponse) {
     request.user.logout()
     response.appendBody(string: "ok logout")
+    LogFile.info("ok logout")
     response.completed()
 }
 
@@ -101,6 +108,7 @@ func toStringJon(str: String) -> String {
             out = try str.jsonEncodedString()
         } catch {
             print(error)
+            LogFile.error("JSON \(error)")
         }
     
     return out

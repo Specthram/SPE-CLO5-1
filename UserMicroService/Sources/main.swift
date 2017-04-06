@@ -21,6 +21,8 @@ import PerfectLib
 import PerfectHTTP
 import PerfectHTTPServer
 import TurnstilePerfect
+import PerfectLogger
+import PerfectRequestLogger
 
 
 // C'est trop bon rhooo
@@ -37,6 +39,12 @@ let turnstile = TurnstilePerfect()
 
 server.setRequestFilters([turnstile.requestFilter])
 server.setResponseFilters([turnstile.responseFilter])
+
+// Request Logger
+let myLogger = RequestLogger()
+
+server.setRequestFilters([(myLogger, .high)])
+server.setResponseFilters([(myLogger, .low)])
 
 let routes = makeUrlRoutes()
 server.addRoutes(routes)
