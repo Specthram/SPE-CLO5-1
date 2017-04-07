@@ -8,6 +8,7 @@ room int,
 reserved boolean,
 start_date timestamp,
 end_date timestamp,
+paid boolean,
 user text
 );
 

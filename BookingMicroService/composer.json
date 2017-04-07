@@ -17,7 +17,8 @@
         "slim/php-view": "^2.0",
         "monolog/monolog": "^1.17",
         "duoshuo/php-cassandra": "dev-master",
-        "shen2/fluent-cql": "dev-master"
+        "shen2/fluent-cql": "dev-master",
+        "guzzlehttp/guzzle": "^6.2"
     },
     "require-dev": {
         "phpunit/phpunit": ">=4.8 < 6.0"
