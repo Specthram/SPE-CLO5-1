@@ -36,3 +36,14 @@ exemple :
 `{"room": "34", "reserved": true, "start_date": "2016-01-01", "end_date":"2016-01-02"}`
 
 retourne 200 quand ok.
+
+##PATCH /api/v1/booking/book/{id}
+
+* TOKEN : token ou username et password
+* BODY : JSON (opération prise en compte : replace)
+
+exemples :
+- `{"op":"replace", "key": "reserved", "value": "false"}`
+- `{"op":"replace", "key": "paid", "value": "true"}`
+
+

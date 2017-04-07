@@ -17,13 +17,13 @@ $app->get('/api/v1/booking/book/{id}', function(\Slim\Http\Request $request, \Sl
 	$connection     = ConnectionService::getConnectionOrExit();
 	$authService    = new AuthService();
 
-	$return = $authService->authAction($request, $connection);
+	$return = $authService->authAction($request, $connection, $this->get('settings'));
 
 	if ($return){
 		return $return;
 	}
 
-	$queryResponse = $connection->querySync('SELECT * FROM booking WHERE "id" = ?', [(int)$args['id']])->fetchAll()->toArray();
+	$queryResponse = $connection->querySync('SELECT * FROM booking WHERE "id" = ?', [(string)$args['id']])->fetchAll()->toArray();
 
 	$response->write(json_encode($queryResponse));
 
@@ -33,14 +33,13 @@ $app->get('/api/v1/booking/book/{id}', function(\Slim\Http\Request $request, \Sl
 
 });
 
-$app->post('/api/v1/booking/book', function(\Slim\Http\Request $request, \Slim\Http\Response$response, Array $args){
+$app->post('/api/v1/booking/book', function(\Slim\Http\Request $request, \Slim\Http\Response $response, Array $args){
 
 	$response       = new \Slim\Http\Response();
 	$authService    = new AuthService();
 	$connection     = ConnectionService::getConnectionOrExit();
 
-
-	$return = $authService->authAction($request, $connection);
+	$return = $authService->authAction($request, $connection, $this->get('settings'));
 
 	if ($return){
 		return $return;
@@ -60,19 +59,64 @@ $app->post('/api/v1/booking/book', function(\Slim\Http\Request $request, \Slim\H
 	$startDateC = new \Cassandra\Type\Timestamp($startDate->getTimestamp());
 	$endDateC = new \Cassandra\Type\Timestamp($endDate->getTimestamp());
 
-	$queryResponse = $connection->querySync('INSERT INTO booking ("id", "room", "reserved", "user", "start_date", "end_date") VALUES (?, ?, ?, ?, ?, ?);',
+	error_log('making cassandra query : INSERT INTO booking ("id", "room", "reserved", "user", "start_date", "end_date", "paid") VALUES ...');
+
+	$queryResponse = $connection->querySync('INSERT INTO booking ("id", "room", "reserved", "user", "start_date", "end_date", "paid") VALUES (?, ?, ?, ?, ?, ?, ?);',
 		[
 			(string)uniqid(),
 			(int)$jsonBody['room'],
 			(boolean)$jsonBody['reserved'],
 			$authService->getId(),
 			$startDateC,
-			$endDateC
+			$endDateC,
+			false
 		]
 	);
 
 	$response->withStatus(200);
 	$response->write("registered.");
+
+	$connection->disconnect();
+
+	return $response;
+});
+
+$app->patch('/api/v1/booking/book/{id}', function(\Slim\Http\Request $request, \Slim\Http\Response$response, Array $args){
+
+	$response       = new \Slim\Http\Response();
+	$authService    = new AuthService();
+	$connection     = ConnectionService::getConnectionOrExit();
+
+
+	$return = $authService->authAction($request, $connection, $this->get('settings'));
+
+	if ($return){
+		return $return;
+	}
+
+	$jsonBody = json_decode($request->getBody(), true);
+
+	if (!$jsonBody || !isset($jsonBody['op']) || !isset($jsonBody['key']) || !isset($jsonBody['value'])){
+		$response->withStatus(400);
+		$response->write(json_encode(["error" => "bad json"]));
+		return $response;
+	}
+
+	if ($jsonBody['op'] != 'replace'){
+		$response->withStatus(400);
+		$response->write(json_encode(["error" => $jsonBody['op'] . ' is not a valid operation']));
+		return $response;
+	}
+
+	$key    = $jsonBody['key'];
+	$value  = $jsonBody['value'];
+	$value  = str_replace("'", "\\'", $value);
+
+	error_log('making request to cassandra : UPDATE booking SET ' . $key . '=' . $value . ' WHERE id=\'' . $args['id'] . '\';');
+	$queryResponse = $connection->querySync('UPDATE booking SET ' . $key . '=' . $value . ' WHERE id=\'' . $args['id'] . '\';');
+
+	$response->withStatus(200);
+	$response->write("modified.");
 
 	$connection->disconnect();
 

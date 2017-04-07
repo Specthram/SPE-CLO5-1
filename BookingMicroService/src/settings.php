@@ -15,5 +15,9 @@ return [
             'path' => __DIR__ . '/../logs/app.log',
             'level' => \Monolog\Logger::DEBUG,
         ],
+	    'api_user' => [
+		    'ipAddress'	=> '172.16.230.18',
+		    'port'      => '8083'
+	    ],
     ],
 ];
