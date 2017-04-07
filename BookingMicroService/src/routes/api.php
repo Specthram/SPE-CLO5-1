@@ -16,8 +16,10 @@ $app->get('/api/v1/booking/book/{id}', function(\Slim\Http\Request $request, \Sl
 
 	$connection     = ConnectionService::getConnectionOrExit();
 	$authService    = new AuthService();
+	/** @var \Monolog\Logger $logger */
+	$logger         = $this->get('logger');
 
-	$return = $authService->authAction($request, $connection, $this->get('settings'));
+	$return = $authService->authAction($request, $connection, $this->get('settings'), $logger);
 
 	if ($return){
 		return $return;
@@ -38,8 +40,10 @@ $app->post('/api/v1/booking/book', function(\Slim\Http\Request $request, \Slim\H
 	$response       = new \Slim\Http\Response();
 	$authService    = new AuthService();
 	$connection     = ConnectionService::getConnectionOrExit();
+	/** @var \Monolog\Logger $logger */
+	$logger         = $this->get('logger');
 
-	$return = $authService->authAction($request, $connection, $this->get('settings'));
+	$return = $authService->authAction($request, $connection, $this->get('settings'), $logger);
 
 	if ($return){
 		return $return;
@@ -60,6 +64,7 @@ $app->post('/api/v1/booking/book', function(\Slim\Http\Request $request, \Slim\H
 	$endDateC = new \Cassandra\Type\Timestamp($endDate->getTimestamp());
 
 	error_log('making cassandra query : INSERT INTO booking ("id", "room", "reserved", "user", "start_date", "end_date", "paid") VALUES ...');
+	$logger->addDebug('making cassandra query : INSERT INTO booking ("id", "room", "reserved", "user", "start_date", "end_date", "paid") VALUES ...');
 
 	$queryResponse = $connection->querySync('INSERT INTO booking ("id", "room", "reserved", "user", "start_date", "end_date", "paid") VALUES (?, ?, ?, ?, ?, ?, ?);',
 		[
@@ -81,14 +86,16 @@ $app->post('/api/v1/booking/book', function(\Slim\Http\Request $request, \Slim\H
 	return $response;
 });
 
-$app->patch('/api/v1/booking/book/{id}', function(\Slim\Http\Request $request, \Slim\Http\Response$response, Array $args){
+$app->patch('/api/v1/booking/book/{id}', function(\Slim\Http\Request $request, \Slim\Http\Response $response, Array $args){
 
 	$response       = new \Slim\Http\Response();
 	$authService    = new AuthService();
 	$connection     = ConnectionService::getConnectionOrExit();
+	/** @var \Monolog\Logger $logger */
+	$logger         = $this->get('logger');
 
 
-	$return = $authService->authAction($request, $connection, $this->get('settings'));
+	$return = $authService->authAction($request, $connection, $this->get('settings'), $logger);
 
 	if ($return){
 		return $return;
@@ -113,6 +120,7 @@ $app->patch('/api/v1/booking/book/{id}', function(\Slim\Http\Request $request, \
 	$value  = str_replace("'", "\\'", $value);
 
 	error_log('making request to cassandra : UPDATE booking SET ' . $key . '=' . $value . ' WHERE id=\'' . $args['id'] . '\';');
+	$logger->addDebug('making request to cassandra : UPDATE booking SET ' . $key . '=' . $value . ' WHERE id=\'' . $args['id'] . '\';');
 	$queryResponse = $connection->querySync('UPDATE booking SET ' . $key . '=' . $value . ' WHERE id=\'' . $args['id'] . '\';');
 
 	$response->withStatus(200);

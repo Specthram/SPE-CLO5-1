@@ -6,7 +6,7 @@ class AuthService {
 
 	private $id     = 0;
 
-	public function authAction (\Slim\Http\Request $request, $connection, \Slim\Collection $settings){
+	public function authAction (\Slim\Http\Request $request, $connection, \Slim\Collection $settings, \Monolog\Logger $logger){
 
 		$response   = new \Slim\Http\Response();
 		$guzzle     = new GuzzleHttp\Client();
@@ -35,6 +35,8 @@ class AuthService {
 		} catch(Exception $e) {
 			error_log('unable to connect user api : ' . $e->getMessage());
 			error_log('using local user data');
+			$logger->addWarning('unable to connect user api : ' . $e->getMessage());
+			$logger->addWarning('using local user data');
 		}
 
 		if (isset($gRes) && $gRes && $gRes->getStatusCode() == 200){
