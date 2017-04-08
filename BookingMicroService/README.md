@@ -43,7 +43,7 @@ retourne 200 quand ok.
 * BODY : JSON (opération prise en compte : replace)
 
 exemples :
-- `{"op":"replace", "key": "reserved", "value": "false"}`
-- `{"op":"replace", "key": "paid", "value": "true"}`
+- `[{"op":"replace", "key": "reserved", "value": "false"}]`
+- `[{"op":"replace", "key": "paid", "value": "true"}]`
 
 

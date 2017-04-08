@@ -15,5 +15,13 @@ return [
             'path' => __DIR__ . '/../logs/app.log',
             'level' => \Monolog\Logger::DEBUG,
         ],
+	    'api_user' => [
+		    'ipAddress'	=> '172.16.230.18',
+		    'port'      => '8083'
+	    ],
+	    'api_booking' => [
+		    'ipAddress'	=> '127.0.0.1',
+		    'port'      => '8085'
+	    ],
     ],
 ];

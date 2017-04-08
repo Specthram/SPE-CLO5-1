@@ -3,6 +3,7 @@
 $app->get('/api/v1/booking', function(\Slim\Http\Request $request, \Slim\Http\Response$response, Array $args){
 
 	$routes = [];
+	$routes[] = "NON MIS A JOUR";
 	$routes['list'][] = array("route" => "/booking/book", "method" => "GET", 'description' => 'gives all reserved rooms');
 	$routes['list'][] = array("route" => "/booking/book", "method" => "POST", 'description' => 'book a room (json -> ["room": "id_room"]), return 200 if ok or 403 if not');
 
@@ -103,20 +104,21 @@ $app->patch('/api/v1/booking/book/{id}', function(\Slim\Http\Request $request, \
 
 	$jsonBody = json_decode($request->getBody(), true);
 
-	if (!$jsonBody || !isset($jsonBody['op']) || !isset($jsonBody['key']) || !isset($jsonBody['value'])){
+	if (!$jsonBody || !isset($jsonBody[0]['op']) || !isset($jsonBody[0]['key']) || !isset($jsonBody[0]['value'])){
+		var_dump($jsonBody);
 		$response->withStatus(400);
 		$response->write(json_encode(["error" => "bad json"]));
 		return $response;
 	}
 
-	if ($jsonBody['op'] != 'replace'){
+	if ($jsonBody[0]['op'] != 'replace'){
 		$response->withStatus(400);
 		$response->write(json_encode(["error" => $jsonBody['op'] . ' is not a valid operation']));
 		return $response;
 	}
 
-	$key    = $jsonBody['key'];
-	$value  = $jsonBody['value'];
+	$key    = $jsonBody[0]['key'];
+	$value  = $jsonBody[0]['value'];
 	$value  = str_replace("'", "\\'", $value);
 
 	error_log('making request to cassandra : UPDATE booking SET ' . $key . '=' . $value . ' WHERE id=\'' . $args['id'] . '\';');
