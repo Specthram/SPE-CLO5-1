@@ -105,7 +105,6 @@ $app->patch('/api/v1/booking/book/{id}', function(\Slim\Http\Request $request, \
 	$jsonBody = json_decode($request->getBody(), true);
 
 	if (!$jsonBody || !isset($jsonBody[0]['op']) || !isset($jsonBody[0]['key']) || !isset($jsonBody[0]['value'])){
-		var_dump($jsonBody);
 		$response->withStatus(400);
 		$response->write(json_encode(["error" => "bad json"]));
 		return $response;
