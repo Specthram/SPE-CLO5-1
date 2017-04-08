@@ -2,7 +2,10 @@
 
 class AuthService {
 
-	private $admin  = false;
+	private $admin      = false;
+	private $username   = "";
+	private $password   = "";
+	private $token      = "";
 
 	private $id     = 0;
 
@@ -16,21 +19,21 @@ class AuthService {
 		$token      = "";
 
 		if (isset($request->getHeader('username')[0])){
-			$username   = (string)$request->getHeader('username')[0];
+			$this->username   = (string)$request->getHeader('username')[0];
 		}
 		if (isset($request->getHeader('password')[0])){
-			$password   = (string)$request->getHeader('password')[0];
+			$this->password   = (string)$request->getHeader('password')[0];
 		}
 		if (isset($request->getHeader('token')[0])){
-			$token      = (string)$request->getHeader('token')[0];
+			$this->token      = (string)$request->getHeader('token')[0];
 		}
 
 		try {
 			$gRes       = $guzzle->get('http://' . $settings->get('api_user')['ipAddress'] . ':' . $settings->get('api_user')['port'] . '/api/v1/users/login', ['headers'=>[
-				'username'  => $username,
-				'login'     => $username,
-				'password'  => $password,
-				'token'     => $token
+				'username'  => $this->username,
+				'login'     => $this->username,
+				'password'  => $this->password,
+				'token'     => $this->token
 			]]);
 		} catch(Exception $e) {
 			error_log('unable to connect user api : ' . $e->getMessage());
@@ -56,7 +59,7 @@ class AuthService {
 					return $response;
 				}
 
-				if ((boolean)$auth[0]['admin']){
+				if (isset($auth[0]['admin']) && $auth[0]['admin'] === true){
 					$this->admin = true;
 				}
 
@@ -94,5 +97,17 @@ class AuthService {
 
 	public function getId(){
 		return $this->id;
+	}
+
+	public function getUsername(){
+		return $this->username;
+	}
+
+	public function getPassword(){
+		return $this->password;
+	}
+
+	public function getToken(){
+		return $this->token;
 	}
 }

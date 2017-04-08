@@ -1,0 +1,11 @@
+before_script:
+    - composer install --no-dev --no-interaction --optimize-autoloader --prefer-dist --no-progress
+    - echo $CI_BUILD_REF_NAME > version
+    - echo $CI_BUILD_TAG >> version
+    - echo $CI_BUILD_REF >> version
+
+script:
+    - echo "tests en cours"
+    - cqlsh -f init.cql
+    only:
+        - master
