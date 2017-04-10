@@ -68,6 +68,7 @@
   file:
       path: /var/run/docker.sock
       owner: thai_q 
+#      owner: vietti
       group: docker
 
 #Mise en place du docker swarm

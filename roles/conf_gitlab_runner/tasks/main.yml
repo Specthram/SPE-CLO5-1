@@ -1,0 +1,11 @@
+---
+- name: Install GitLab Runner 
+  include: install-debian.yml
+  when: ansible_host == "172.16.230.18" 
+
+- name: Set global options
+  include: global-setup.yml
+
+- name: Register GitLab Runner
+  include: register-runner.yml
+  when: gitlab_runner_registration_token != ''

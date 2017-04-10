@@ -1,9 +1,60 @@
 ---
 
-- name: Installation de Gitlab CE
-  become: true
-  shell: 'apt-get install sudo curl git && curl https://packages.gitlab.com/install/repositories/gitlab/gitlab-ce/script.deb.sh | sudo bash && apt-get install gitlab-ce'
-  when: ansible_host == "192.168.203.133"
-  run_once: true
+- include_vars: "{{ ansible_os_family }}.yml"
+
+
+- name: Copy content dockerfile influxdata_1
+  copy:
+    src: ../files/docker-compose.yml
+    dest: /home/thai_q/influxdata/
+    owner: thai_q
+    group: thai_q
+    mode: 0644
+  when: ansible_host == '172.16.230.18'
+
+- name: Copy content dockerfile influxdata_2
+  copy:
+    src: ../files/etc
+    dest: /home/thai_q/influxdata/
+    owner: thai_q
+    group: thai_q
+    mode: 0644
+  when: ansible_host == '172.16.230.18'
+
+- name: Execute maj docker_compose
+  shell: "cd /home/thai_q/influxdata/; docker-compose up -d"
+  when: ansible_host == '172.16.230.18'
+
+- name: Tag telegraf to point to registry
+  shell: 'docker tag telegraf:1.0.0-rc1 localhost:5000/telegraf'
+  when: ansible_host == '172.16.230.18'
+
+- name: push telegraf to registry
+  shell: 'docker push localhost:5000/telegraf'
+  when: ansible_host == '172.16.230.18'
+
+- name: Tag chronograf to point to registry
+  shell: 'docker tag chronograf:1.0.0-rc1 localhost:5000/chronograf'
+  when: ansible_host == '172.16.230.18'
+
+- name: push chronograf to registry
+  shell: 'docker push localhost:5000/chronograf'
+  when: ansible_host == '172.16.230.18'
+
+- name: Tag kapacitor to point to registry
+  shell: 'docker tag kapacitor:1.0.0-rc1 localhost:5000/kapacitor'
+  when: ansible_host == '172.16.230.18'
+
+- name: push kapacitor to registry
+  shell: 'docker push localhost:5000/kapacitor'
+  when: ansible_host == '172.16.230.18'
+
+- name: Tag influxdb to point to registry
+  shell: 'docker tag influxdb:1.0.0-rc1 localhost:5000/influxdb'
+  when: ansible_host == '172.16.230.18'
+
+- name: push influxdb to registry
+  shell: 'docker push localhost:5000/influxdb'
+  when: ansible_host == '172.16.230.18'
 
 
