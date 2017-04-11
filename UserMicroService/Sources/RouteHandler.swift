@@ -24,6 +24,7 @@ func makeUrlRoutes() -> Routes {
     routes.add(method: .post, uri: "/register", handler: registerHandler)
     routes.add(method: .get, uri: "/me", handler: getSelfUserHandler)
     routes.add(method: .get, uri: "/logout", handler: logoutHandler)
+    routes.add(method: .get, uri: "/checkauth", handler: logoutHandler)
 
     
     print("\(routes.navigator.description)")
@@ -50,8 +51,28 @@ func loginHandler(request: HTTPRequest, _ response: HTTPResponse) {
         try request.user.login(credentials: credentials, persist: true)
         let account = request.user.authDetails?.account.uniqueID
         response.appendBody(string: toStringJon(str: account!))
+        append(key: "uniqueID", value: account!)
     } catch {
         response.appendBody(string: toStringJon(str: "Invalid Username or Password"))
+    }
+    
+    response.setHeader(.contentType, value: "application/json")
+    response.completed()
+}
+
+func checkauthHandler(request: HTTPRequest, _ response: HTTPResponse) {
+    guard let username = request.param(name: "uniqueID")else {
+            response.appendBody(string: toStringJon(str: "Missing uniqueID"))
+            LogFile.debug("Missing uniqueID")
+            return
+    }
+    
+    var re = getData(key: "uniqueID")
+    
+    if re?.range(of:username) != nil{
+        response.appendBody(string: toStringJon(str: "OK USA"))
+    }else{
+        response.appendBody(string: toStringJon(str: "fuck off"))
     }
     
     response.setHeader(.contentType, value: "application/json")

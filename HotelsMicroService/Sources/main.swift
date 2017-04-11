@@ -21,7 +21,8 @@ import PerfectRequestLogger
 let server = HTTPServer()
 
 // Listen on port 8181.
-server.serverPort = 8181
+server.serverPort = 8184
+server.serverAddress = "0.0.0.0"
 
 // Add our routes.
 let routes = makeUrlRoutes()
