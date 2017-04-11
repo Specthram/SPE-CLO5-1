@@ -21,6 +21,8 @@ import PerfectLib
 import PerfectHTTP
 import PerfectHTTPServer
 import TurnstilePerfect
+import PerfectLogger
+import PerfectRequestLogger
 
 
 // C'est trop bon rhooo
@@ -29,7 +31,8 @@ import TurnstilePerfect
 let server = HTTPServer()
 
 // Listen on port 8181.
-server.serverPort = 8181
+server.serverPort = 8183
+server.serverAddress = "0.0.0.0"
 
 
 // The Turnstile instance
@@ -38,8 +41,18 @@ let turnstile = TurnstilePerfect()
 server.setRequestFilters([turnstile.requestFilter])
 server.setResponseFilters([turnstile.responseFilter])
 
+// Request Logger
+let myLogger = RequestLogger()
+
+server.setRequestFilters([(myLogger, .high)])
+server.setResponseFilters([(myLogger, .low)])
+
 let routes = makeUrlRoutes()
 server.addRoutes(routes)
+
+setData(key: "uniqueID", value: "uuid1")
+append(key: "uniqueID", value: "uuid2")
+append(key: "uniqueID", value: "uuid3")
 
 print("fin")
 

@@ -11,6 +11,8 @@ import TurnstilePerfect
 import Turnstile
 import TurnstileCrypto
 import TurnstileWeb
+import PerfectLogger
+import PerfectRequestLogger
 
 func makeUrlRoutes() -> Routes {
     
@@ -22,6 +24,7 @@ func makeUrlRoutes() -> Routes {
     routes.add(method: .post, uri: "/register", handler: registerHandler)
     routes.add(method: .get, uri: "/me", handler: getSelfUserHandler)
     routes.add(method: .get, uri: "/logout", handler: logoutHandler)
+    routes.add(method: .get, uri: "/checkauth", handler: logoutHandler)
 
     
     print("\(routes.navigator.description)")
@@ -39,6 +42,7 @@ func loginHandler(request: HTTPRequest, _ response: HTTPResponse) {
     guard let username = request.param(name: "username"),
         let password = request.param(name: "password") else {
             response.appendBody(string: toStringJon(str: "Missing username or password"))
+            LogFile.debug("Missing username or password")
             return
     }
     let credentials = UsernamePassword(username: username, password: password)
@@ -47,8 +51,28 @@ func loginHandler(request: HTTPRequest, _ response: HTTPResponse) {
         try request.user.login(credentials: credentials, persist: true)
         let account = request.user.authDetails?.account.uniqueID
         response.appendBody(string: toStringJon(str: account!))
+        append(key: "uniqueID", value: account!)
     } catch {
         response.appendBody(string: toStringJon(str: "Invalid Username or Password"))
+    }
+    
+    response.setHeader(.contentType, value: "application/json")
+    response.completed()
+}
+
+func checkauthHandler(request: HTTPRequest, _ response: HTTPResponse) {
+    guard let username = request.param(name: "uniqueID")else {
+            response.appendBody(string: toStringJon(str: "Missing uniqueID"))
+            LogFile.debug("Missing uniqueID")
+            return
+    }
+    
+    var re = getData(key: "uniqueID")
+    
+    if re?.range(of:username) != nil{
+        response.appendBody(string: toStringJon(str: "OK USA"))
+    }else{
+        response.appendBody(string: toStringJon(str: "fuck off"))
     }
     
     response.setHeader(.contentType, value: "application/json")
@@ -59,6 +83,7 @@ func registerHandler(request: HTTPRequest, _ response: HTTPResponse) {
     guard let username = request.param(name: "username"),
         let password = request.param(name: "password") else {
             response.appendBody(string: "Missing username or password")
+            LogFile.debug("Missing username or password")
             return
     }
     let credentials = UsernamePassword(username: username, password: password)
@@ -70,6 +95,7 @@ func registerHandler(request: HTTPRequest, _ response: HTTPResponse) {
         response.appendBody(string: toStringJon(str: e.description))
     } catch {
         response.appendBody(string: "An unknown error occurred.")
+        LogFile.critical(" An unknown error occurred.")
     }
     
     response.setHeader(.contentType, value: "application/json")
@@ -80,6 +106,7 @@ func getSelfUserHandler(request: HTTPRequest, _ response: HTTPResponse) {
     guard let account = request.user.authDetails?.account as? User else {
         response.status = .unauthorized
         response.appendBody(string: "401 Unauthorized")
+        LogFile.info("\(request): 401 Unauthorized")
         response.completed()
         return
     }
@@ -91,6 +118,7 @@ func getSelfUserHandler(request: HTTPRequest, _ response: HTTPResponse) {
 func logoutHandler(request: HTTPRequest, _ response: HTTPResponse) {
     request.user.logout()
     response.appendBody(string: "ok logout")
+    LogFile.info("ok logout")
     response.completed()
 }
 
@@ -101,6 +129,7 @@ func toStringJon(str: String) -> String {
             out = try str.jsonEncodedString()
         } catch {
             print(error)
+            LogFile.error("JSON \(error)")
         }
     
     return out
