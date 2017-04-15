@@ -1,9 +1,10 @@
 # Image de base
-FROM debian:jessie
+FROM ubuntu:16.04
 
 #install tout les paquets nécessaire
-RUN apt-get -q update && apt-get -q install -y make libc6-dev clang pkg-config libicu-dev libpython2.7 libxml2-dev wget git libssl-dev uuid-dev libsqlite3-dev libpq-dev libmysqlclient-dev libbson-dev libmongoc-dev libcurl4-openssl-dev 
+#RUN apt-get -q update && apt-get -q install -y make libc6-dev clang pkg-config libicu-dev libpython2.7 libxml2-dev wget git libssl-dev uuid-dev libsqlite3-dev libpq-dev libmysqlclient-dev libbson-dev libmongoc-dev libcurl4-openssl-dev 
 
+RUN apt-get -q update && apt-get -q install -y make libc6-dev clang curl libedit-dev python2.7 python2.7-dev libicu-dev libssl-dev libxml2 git libcurl4-openssl-dev pkg-config wget uuid-dev openssl libstdc++6 libtinfo-dev
 
 #download de swift
 RUN wget https://swift.org/builds/swift-3.0.2-release/ubuntu1604/swift-3.0.2-RELEASE/swift-3.0.2-RELEASE-ubuntu16.04.tar.gz
@@ -20,6 +21,8 @@ RUN echo "/usr/lib/swift/linux" >> /etc/ld.so.conf.d/swift.conf
 RUN ldconfig
 RUN swift --version
 
-WORKDIR /usr/src/HotelsMicroService
+#Install du micro service 
+RUN git clone https://github.com/addel/SPE-CLO5.git
+WORKDIR /SPE-CLO5/HotelsMicroService
 RUN swift build
 CMD .build/debug/HotelsMicroService
